@@ -11,6 +11,7 @@ class Data:
         self.target = data[target_col]
         self.number_of_features = len(self.features.columns)
         self.number_of_samples = len(data.index)
+        self.number_of_classes = len(data.groupby(data[target_col]))
         self.sc = self.scale_data()
 
     def scale_data(self):

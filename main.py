@@ -5,12 +5,19 @@ from Classifier import Classifier
 import numpy as np
 
 df = pd.read_csv("heart.csv")
-data = Data(data=df.values, columns=df.columns,
+data = Data(data=df, columns=df.columns,
             target_col='target',
             columns_to_scale=df.columns[:-1])
 
 
 
-factors = np.random.rand(data.number_of_features)
-cls = BinaryClassifier(factors, data, 1)
-print(cls.accuracy)
+from Generation import Generation
+gnr = Generation(data, 200, 1, 0.1)
+print(gnr.classifiers[0].factors.shape)
+i = 0
+while i<100:
+    print(i, ". GENERATION")
+    print("AVERAGE:", gnr.average_accuracy)
+    print("BEST:",gnr.classifiers[0].accuracy)
+    gnr = Generation.init_from_old_generation(gnr)
+    i += 1
