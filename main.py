@@ -11,8 +11,10 @@ data = Data(data=df, columns=df.columns,
 
 
 
+
 from Generation import Generation
-gnr = Generation(data, 200, 1, 0.1)
+gnr = Generation(data, 100, 1, 0.2)
+
 print(gnr.classifiers[0].factors.shape)
 i = 0
 while i<100:
@@ -21,3 +23,4 @@ while i<100:
     print("BEST:",gnr.classifiers[0].accuracy)
     gnr = Generation.init_from_old_generation(gnr)
     i += 1
+    print("\n\n\n")

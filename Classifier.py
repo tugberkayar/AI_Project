@@ -50,15 +50,8 @@ class Classifier:
 
 
 class BinaryClassifier(Classifier):
-    def __init__(self, data, 
-            polynomial_degree, factors = []):
-        if factors == []:
-            shape_of_factors = (Classifier.calculate_polynomial_length(
-                data.number_of_features, polynomial_degree), 1)
-            Classifier.__init__(self, data, polynomial_degree, 
-                Classifier.init_factors(shape_of_factors))
-        else:
-            Classifier.__init__(self, data, polynomial_degree, factors)
+    def __init__(self, data, polynomial_degree, factors):
+        Classifier.__init__(self, data, polynomial_degree, factors)
         self.estimations = self.estimate()
         self.accuracy = self.calculate_accuracy()
     
@@ -80,6 +73,43 @@ class BinaryClassifier(Classifier):
             if result == 1 and self.estimations[i] >= 0.5:
                 correct += 1
             elif result == 0 and self.estimations[i] < 0.5:
+                correct += 1
+            i += 1
+        return correct / self.data.number_of_samples
+
+
+
+
+class MultivariateClassifier(Classifier):
+
+    def __init__(self, data, polynomial_degree, factors):
+        Classifier.__init__(self, data, polynomial_degree, factors)
+        self.estimations = self.estimate()
+        self.accuracy = self.calculate_accuracy()
+
+
+
+    def estimate(self):
+        estimations = np.empty(shape = (
+            self.data.number_of_samples, self.data.number_of_classes
+        ))
+        for row, index in self.data.features.iterrows():
+            temp = []
+            for i in range(self.data.number_of_classes):
+                temp += [Classifier.calculate_polynomial_result(
+                    self.factors[:,i], index.values, self.polynomial_degree
+                )]
+            estimations[row] = temp / np.sum(temp)
+        return estimations
+
+    def calculate_accuracy(self):
+        bests = np.empty(shape=self.data.number_of_samples)
+        for i in range(self.data.number_of_samples):
+            bests[i] = np.argmax(self.estimations[i])
+        correct = 0
+        i = 0
+        for result in self.data.target:
+            if result == bests[i]:
                 correct += 1
             i += 1
         return correct / self.data.number_of_samples

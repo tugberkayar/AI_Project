@@ -1,6 +1,10 @@
 from itertools import combinations_with_replacement as cwr
-from Classifier import BinaryClassifier
+from Classifier import *
 import numpy as np
+import concurrent.futures
+from time import time
+
+
 
 class Generation:
     def __init__(self, data,number_of_individuals, polynomial_degree, 
@@ -17,16 +21,31 @@ class Generation:
             self.give_mutation()
         self.average_accuracy = self.calculate_average_accuracy()
 
-
     def create_first_generation(self):
         classifiers = []
+        factors_length = Classifier.calculate_polynomial_length(
+            self.data.number_of_features,
+            self.polynomial_degree
+        )
         if self.data.number_of_classes == 2:
+            factors_shape = (self.number_of_individuals,
+                factors_length, 
+                1)
+            factors = np.random.random_sample(factors_shape)
             for i in range(self.number_of_individuals):
-                classifiers.append(BinaryClassifier(
-                    self.data, self.polynomial_degree
-                ))
+                classifiers += [BinaryClassifier(
+                    self.data, self.polynomial_degree, factors[i]
+                )]
+                
         else:
-            pass
+            factors_shape = (self.number_of_individuals,
+                factors_length,
+                self.data.number_of_classes)
+            factors = np.random.random_sample(factors_shape)
+            for i in range(self.number_of_individuals):
+                classifiers += [MultivariateClassifier(
+                    self.data, self.polynomial_degree, factors[i]
+                )]
         return sorted(classifiers, 
                     key = lambda cl: cl.accuracy, reverse = True)
 
@@ -69,12 +88,20 @@ class Generation:
             
         first_child_factors = np.array(first_child_factors)
         second_child_factors = np.array(second_child_factors)
-        first_child = BinaryClassifier(
-            first_parent.data, first_parent.polynomial_degree, first_child_factors
-        )
-        second_child = BinaryClassifier(
-            first_parent.data, first_parent.polynomial_degree, second_child_factors
-        )
+        if first_parent.data.number_of_classes == 2:
+            first_child = BinaryClassifier(
+                first_parent.data, first_parent.polynomial_degree, first_child_factors
+            )
+            second_child = BinaryClassifier(
+                first_parent.data, first_parent.polynomial_degree, second_child_factors
+            )
+        else:
+            first_child = MultivariateClassifier(
+                first_parent.data, first_parent.polynomial_degree, first_child_factors
+            )
+            second_child = MultivariateClassifier(
+                first_parent.data, first_parent.polynomial_degree, second_child_factors
+            )
         return first_child, second_child
 
     @staticmethod
